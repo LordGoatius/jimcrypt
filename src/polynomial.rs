@@ -30,7 +30,7 @@ impl Polynomial {
         let mut coefficients: VecDeque<u8> = vec![0u8; length].into();
 
         for i in 0..length {
-            coefficients[i] = rng.gen_range(0u8..255u8);
+            coefficients[i] = rng.gen_range(0u8..=255u8);
         }
 
         Polynomial { coefficients }
