@@ -1,4 +1,4 @@
-use crate::polynomial::Polynomial;
+use jimcrypt::polynomial::Polynomial;
 
 pub fn xor_chunk(chunk: [u8; 32], polynomial: &Polynomial) -> [u8; 32] {
     let mut out = [0u8; 32];

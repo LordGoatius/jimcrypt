@@ -2,7 +2,7 @@ pub mod config;
 pub mod app;
 pub mod encrypt;
 pub mod decrypt;
-pub mod polynomial;
+//pub mod polynomial;
 pub mod shared;
 
 use crate::config::Config;
@@ -20,7 +20,7 @@ mod tests {
 
     #[test]
     fn polynomial_multiplication() {
-        use crate::polynomial::Polynomial;
+        use jimcrypt::polynomial::Polynomial;
 
         let polynomial0: Polynomial = Polynomial::new(vec![5u8, 0, 10, 6].into());
         let polynomial1: Polynomial = Polynomial::new(vec![1u8, 2, 4].into());
@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_polynomial_string() {
-        use crate::polynomial::Polynomial;
+        use jimcrypt::polynomial::Polynomial;
 
         let polynomial = Polynomial::random_polynomial(32);
         let same_poly = Polynomial::from_str(&polynomial.to_string()).expect("failed from_str");

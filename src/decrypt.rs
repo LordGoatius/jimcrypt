@@ -1,7 +1,7 @@
 use std::io::Write;
 use std::{fs, path::Path, u8};
 
-use crate::polynomial::Polynomial;
+use jimcrypt::polynomial::Polynomial;
 use crate::shared::*;
 
 pub fn decrypt(file: Box<Path>, key: Polynomial) {

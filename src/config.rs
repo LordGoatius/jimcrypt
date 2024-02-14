@@ -2,7 +2,7 @@ use std::path::Path;
 
 use clap::{Parser, Subcommand};
 
-use crate::polynomial::Polynomial;
+use jimcrypt::polynomial::Polynomial;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
