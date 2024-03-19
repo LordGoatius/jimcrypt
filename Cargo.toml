@@ -3,6 +3,10 @@ name = "jimcrypt"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["primes_lib"]
+
 [dependencies]
+primes_lib = { path = "primes_lib" }
 clap = { version = "4.5.0", features = ["derive"] }
 rand = "0.8.5"

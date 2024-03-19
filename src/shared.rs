@@ -19,3 +19,19 @@ pub fn vec_option_u8_to_array_32(vec: Vec<u8>) -> [u8; 32] {
         ret
     }
 }
+
+/// Only for wrapping types, which exhibit properties *similar* to modular arithemetic
+pub trait MultInverse {
+    fn mul_inv(&self) -> Self;
+}
+
+/// Only for wrapping types, which exhibit properties *similar* to modular arithemetic
+pub trait AddInverse {
+    fn add_inv(&self) -> Self;
+}
+
+impl AddInverse for u8 {
+    fn add_inv(&self) -> Self {
+        return (255 - self).wrapping_add(1);
+    }
+}
