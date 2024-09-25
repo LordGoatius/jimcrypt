@@ -1,14 +1,14 @@
-use num::{BigUint, FromPrimitive, BigInt};
-use num::bigint::RandBigInt;
-use num::Integer;
 use is_prime::is_prime;
+use num::bigint::{RandBigInt, ToBigInt, ToBigUint};
+use num::Integer;
+use num::{BigInt, BigUint, FromPrimitive};
 
 pub fn rand_prime(size: u64) -> BigUint {
     let mut rng = rand::thread_rng();
     let mut p = rng.gen_biguint(size);
 
-    if p.clone() % 2u8 == BigUint::from(0u8) { 
-        p += 1u8; 
+    if p.clone() % 2u8 == BigUint::from(0u8) {
+        p += 1u8;
     }
 
     while !is_prime(&p.to_string()[..]) {
@@ -37,44 +37,40 @@ pub fn find_e(totient: &BigUint) -> BigUint {
     e % totient.clone()
 }
 
-pub fn gcd_extended(a: BigUint, b: BigUint, x: &mut BigInt, y: &mut BigInt) -> BigUint {
+pub fn gcd_extended(a: BigUint, b: BigUint) -> (BigUint, BigInt, BigInt) {
     if a == BigUint::from(0u8) {
-        *x = BigInt::from(0u8);
-        *y = BigInt::from(1u8);
-        return b;
+        return (b, BigInt::from(0u8), BigInt::from(1u8));
     }
 
-    let mut x1: BigInt = BigInt::from(0u8);
-    let mut y1: BigInt = BigInt::from(0u8);
+    let (gcd, x1, y1) = gcd_extended(b.clone() % a.clone(), a.clone());
 
-    let gcd = gcd_extended(b.clone() % a.clone(), a.clone(), &mut x1, &mut y1);
+    let x = y1 - (BigInt::from(b) / BigInt::from(a)) * x1.clone();
+    let y = x1;
 
-    *x = y1 - (BigInt::from(b) / BigInt::from(a)) * x1.clone();
-    *y = x1;
-
-    gcd
+    (gcd, x, y)
 }
 
 #[allow(non_snake_case)]
 pub fn mod_mult_inverse(totient_N: &BigUint, e: &BigUint) -> Result<BigUint, ()> {
-    let mut x: BigInt = BigInt::from(0u8);
-    let mut y: BigInt = BigInt::from(0u8);
-    let gcd = gcd_extended(e.clone(), totient_N.clone(), &mut x, &mut y);
+    let (gcd, x, _) = gcd_extended(e.clone(), totient_N.clone());
 
     if gcd != BigUint::from(1u8) {
         Err(())
     } else {
-        Ok(((x % BigInt::from(totient_N.clone()) + BigInt::from(totient_N.clone())) % BigInt::from(totient_N.clone())).to_biguint().ok_or(())?)
+        Ok(
+            ((x % BigInt::from(totient_N.clone()) + BigInt::from(totient_N.clone()))
+                % BigInt::from(totient_N.clone()))
+            .to_biguint()
+            .ok_or(())?,
+        )
     }
 }
 
-
-
 #[cfg(test)]
 pub mod tests {
+    use crate::{carmichaels_totient, find_e, mod_mult_inverse, rand_prime};
     use is_prime::is_prime as extern_is_prime;
     use num::BigUint;
-    use crate::{carmichaels_totient, find_e, mod_mult_inverse, rand_prime};
 
     #[test]
     fn is_prime() {
@@ -97,7 +93,7 @@ pub mod tests {
         let q = rand_prime(28);
         let m = rand_prime(13);
 
-        let pq_mod_m = p.modpow(&q, &m); 
+        let pq_mod_m = p.modpow(&q, &m);
 
         eprintln!("{}", pq_mod_m);
     }
@@ -109,7 +105,8 @@ pub mod tests {
 
         let totient = carmichaels_totient(&p, &q);
         let e = find_e(&totient);
-        let d = mod_mult_inverse(&totient, &e);
+        let d = mod_mult_inverse(&totient, &e).unwrap();
+        assert_eq!((e * d) % totient, BigUint::from(1u8))
     }
 
     #[test]
@@ -128,6 +125,6 @@ pub mod tests {
 
         let decrypted = encrypted.modpow(&d, &N);
 
-       assert_eq!(message, decrypted);
+        assert_eq!(message, decrypted);
     }
 }
