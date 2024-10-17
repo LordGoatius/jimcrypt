@@ -1,9 +1,10 @@
 use is_prime::is_prime;
-use num::bigint::{RandBigInt, ToBigInt, ToBigUint};
+use num::bigint::RandBigInt;
 use num::Integer;
 use num::{BigInt, BigUint, FromPrimitive};
 
 pub fn rand_prime(size: u64) -> BigUint {
+    // not cryptographically secure
     let mut rng = rand::thread_rng();
     let mut p = rng.gen_biguint(size);
 
@@ -68,6 +69,8 @@ pub fn mod_mult_inverse(totient_N: &BigUint, e: &BigUint) -> Result<BigUint, ()>
 
 #[cfg(test)]
 pub mod tests {
+    use std::thread;
+
     use crate::{carmichaels_totient, find_e, mod_mult_inverse, rand_prime};
     use is_prime::is_prime as extern_is_prime;
     use num::BigUint;
@@ -111,8 +114,19 @@ pub mod tests {
 
     #[test]
     fn encrypt_decrypt() {
-        let p = rand_prime(28);
-        let q = rand_prime(28);
+        let mut q = BigUint::default();
+        let mut p = BigUint::default();
+        const BITS: u64 = 2048;
+        thread::scope(|s| {
+            s.spawn(|| {
+                p = rand_prime(BITS);
+            });
+            s.spawn(|| {
+                q = rand_prime(BITS);
+            });
+        });
+        println!("p: {p}");
+        println!("q: {q}");
         #[allow(non_snake_case)]
         let N = p.clone() * q.clone();
 
@@ -120,7 +134,7 @@ pub mod tests {
         let e = find_e(&totient);
         let d = mod_mult_inverse(&totient, &e).expect("Doesn't exist");
 
-        let message = BigUint::from(645u16);
+        let message = BigUint::from(6338392393297372845u64) * BigUint::from(6338392393297372845u64);
         let encrypted = message.clone().modpow(&e, &N);
 
         let decrypted = encrypted.modpow(&d, &N);
