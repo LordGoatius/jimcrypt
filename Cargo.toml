@@ -3,6 +3,9 @@ name = "jimcrypt"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+crate-type = ["rlib", "dylib"]
+
 [workspace]
 members = ["primes_lib"]
 

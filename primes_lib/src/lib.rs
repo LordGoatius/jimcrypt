@@ -3,6 +3,38 @@ use num::bigint::RandBigInt;
 use num::Integer;
 use num::{BigInt, BigUint, FromPrimitive};
 
+#[allow(dead_code)]
+fn factor_bigint(num: BigUint) -> (BigUint, BigUint) {
+    let mut a = (&num).sqrt();
+    if (&a * &a) < num {
+        a += BigUint::from(1u8);
+    }
+
+    if a.clone().pow(2) == num {
+        return (a.clone(), a);
+    }
+
+    let mut b1;
+    let mut b;
+
+    let mut counter: u32 = 0;
+
+    loop {
+        b1 = a.clone() * a.clone() - num.clone();
+        b = (&b1).sqrt();
+        if (b.clone() * b.clone()) == b1 {
+            break (a.clone() - b.clone(), a + b);
+        } else {
+            a += BigUint::from(1u8);
+        }
+        counter += 1;
+        if counter & 0x1000000 == 0x1000000 {
+            counter = 0;
+            println!("({a}, {b})");
+        }
+    }
+}
+
 pub fn rand_prime(size: u64) -> BigUint {
     // not cryptographically secure
     let mut rng = rand::thread_rng();
@@ -12,6 +44,16 @@ pub fn rand_prime(size: u64) -> BigUint {
         p += 1u8;
     }
 
+    while !is_prime(&p.to_string()[..]) {
+        p += 2u8;
+    }
+
+    p
+}
+
+/// assumes imput is a prime
+pub fn next_prime(num: &BigUint) -> BigUint {
+    let mut p = num.clone() + BigUint::from(2u8);
     while !is_prime(&p.to_string()[..]) {
         p += 2u8;
     }
@@ -69,11 +111,82 @@ pub fn mod_mult_inverse(totient_N: &BigUint, e: &BigUint) -> Result<BigUint, ()>
 
 #[cfg(test)]
 pub mod tests {
-    use std::thread;
+    use std::{str::FromStr, thread};
 
-    use crate::{carmichaels_totient, find_e, mod_mult_inverse, rand_prime};
+    use crate::{carmichaels_totient, factor_bigint, find_e, mod_mult_inverse, next_prime, rand_prime};
     use is_prime::is_prime as extern_is_prime;
     use num::BigUint;
+
+    #[test]
+    fn factor_bigint_test() {
+        let n = BigUint::from_str("138263137666349792141").unwrap();
+        let (calc_p, calc_q) = factor_bigint(n.clone());
+        println!("");
+        println!("p: {calc_p}");
+        println!("q: {calc_q}");
+        assert_eq!(calc_p * calc_q, n);
+    }
+
+
+    #[test]
+    fn test_digit_primes() {
+        let p = BigUint::from_str("1234567891").unwrap();
+        let q = BigUint::from_str("99999199999").unwrap();
+
+        println!("p: {p}");
+        println!("q: {q}");
+
+        let n = p * q;
+        let (calc_p, calc_q) = factor_bigint(n.clone());
+
+        println!("");
+        println!("p: {calc_p}");
+        println!("q: {calc_q}");
+
+        assert_eq!(calc_p * calc_q, n);
+
+    }
+
+    #[test]
+    fn test_close() {
+        let p = rand_prime(1024);
+        let mut q = next_prime(&p);
+        for _ in 0..1024 {
+            q = next_prime(&q);
+        }
+        println!("p: {p}");
+        println!("q: {q}");
+
+        let n = p * q;
+
+        let (calc_p, calc_q) = factor_bigint(n.clone());
+        println!("");
+        println!("p: {calc_p}");
+        println!("q: {calc_q}");
+
+        assert_eq!(calc_p * calc_q, n);
+    }
+
+    #[test]
+    fn test_factor() {
+        let p = rand_prime(32);
+        let q = rand_prime(32);
+        //let mut q = next_prime(&p);
+        //for _ in 0..128 {
+        //    q = next_prime(&q);
+        //}
+        println!("p: {p}");
+        println!("q: {q}");
+
+        let n = p * q;
+
+        let (calc_p, calc_q) = factor_bigint(n.clone());
+        println!("");
+        println!("p: {calc_p}");
+        println!("q: {calc_q}");
+
+        assert_eq!(calc_p * calc_q, n);
+    }
 
     #[test]
     fn is_prime() {
